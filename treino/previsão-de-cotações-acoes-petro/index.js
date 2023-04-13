@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 const dir = path.resolve()
 
-const file = await fs.readFileSync(`${dir}/docs/cotacao-do-dolar.csv`, { encoding: 'utf8' })
+const file = await fs.readFileSync(`${dir}/docs/cotacao-das-acoes-pn-da-petrobras.csv`, { encoding: 'utf8' })
 
 const dataFile = file.split('\r\n')
 delete dataFile.shift();
@@ -48,7 +48,6 @@ const roundLengthArr = () => {
 
 const buildTraning = async () => {
   await roundLengthArr()
-
   const x = tf.tensor(xData, [xData.length, 4])
   const y = tf.tensor(yData, [yData.length, 4])
 
@@ -56,9 +55,13 @@ const buildTraning = async () => {
   const inputLayer = tf.layers.dense({ units: 4, inputShape: [4] })
 
   model.add(inputLayer)
-  model.compile({ loss: 'meanSquaredError', optimizer: 'sgd' })
 
-  const dataInput = [3.9285, 3.9708, 3.9781, 3.9251]
+  const learningRate = 0.00001
+  const optimizer = tf.train.sgd(learningRate)
+
+  model.compile({ loss: 'meanSquaredError', optimizer })
+
+  const dataInput = [26.83, 27.10, 27.13, 26.64]
   const input =  tf.tensor(dataInput, [1, 4])
 
   await model.fit(x, y, { epochs: 500})
@@ -68,8 +71,8 @@ const buildTraning = async () => {
 }
 
 const training = async () => {
-    await tf.ready()
-    await buildTraning()
+  await tf.ready()
+  buildTraning()
 }
 
 training()
