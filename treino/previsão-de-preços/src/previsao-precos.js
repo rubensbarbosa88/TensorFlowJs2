@@ -7,16 +7,63 @@ button.addEventListener('click', readInputFile)
 
 
 function readInputFile () {
-    console.log('READ')
     const file = input.files[0]
 
     const reader = new FileReader();      
     reader.readAsText(file);
 
-    reader.onload = () => console.log(reader.result)
+    reader.onload = () => handleFile(reader.result.split('\r\n'))
 }
 
-const loadFile = () => {
+const showInputsData = (data) => {
+    const el = document.getElementById('csv-inputs')
+    el.innerHTML = data
+}
+
+const getDataTypes = (arr, inputsHeader) => {
+    return arr.reduce((prev, current) => {
+        const itemArr = current.split(';')
+        
+        itemArr.forEach((item, index) => {
+            if (item && (index < inputsHeader)) {
+                prev.inputs.push(Number(item))
+            } else {
+                prev.outputs.push(Number(item))
+            }            
+        });
+    
+        return prev
+    }, { inputs: [], outputs: []})
+}
+
+
+const handleFile = (file) => {
+    const headers = file[0].split(';')
+    const inputsLength = headers.filter(i => i === 'input').length
+    const outputsLength = headers.filter(i => i === 'output').length
+    delete file.shift()
+
+    const dataTypes = getDataTypes(file, inputsLength)
+    const diff = (dataTypes.inputs.length - dataTypes.outputs.length) + 1
+    
+    const x = dataTypes.inputs.slice(0, diff)
+    const y = dataTypes.outputs.filter(i => !!i)
+    const input = dataTypes.inputs.slice(diff, dataTypes.inputs.length)
+
+    console.log(inputsLength)
+    console.log(outputsLength)
+
+    console.log(x)
+    console.log(y)
+    console.log(input)
+    // const inputsData = dataFile.flatMap((item, i) => {
+    //     console.log(item)
+    //     if (i < outputsLength) {
+    //         return item
+    //     }
+    // })
+
+    // console.log(inputsData)
 
 }
 
