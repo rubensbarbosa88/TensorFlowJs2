@@ -37,7 +37,7 @@ const getDataTypes = (arr, inputsHeader) => {
 }
 
 
-const handleFile = (file) => {
+const handleFile = async (file) => {
     const headers = file[0].split(';')
     const inputsLength = headers.filter(i => i === 'input').length
     const outputsLength = headers.filter(i => i === 'output').length
@@ -46,24 +46,30 @@ const handleFile = (file) => {
     const dataTypes = getDataTypes(file, inputsLength)
     const diff = (dataTypes.inputs.length - dataTypes.outputs.length) + 1
     
-    const x = dataTypes.inputs.slice(0, diff)
-    const y = dataTypes.outputs.filter(i => !!i)
-    const input = dataTypes.inputs.slice(diff, dataTypes.inputs.length)
+    const xData = dataTypes.inputs.slice(0, diff)
+    const yData = dataTypes.outputs.filter(i => !!i)
+    const inputData = dataTypes.inputs.slice(diff, dataTypes.inputs.length)
 
-    console.log(inputsLength)
-    console.log(outputsLength)
+    const x = tf.tensor(xData, [(xData.length / inputsLength), inputsLength])
+    const y = tf.tensor(yData, [(yData.length / outputsLength), outputsLength])
+    const input = tf.tensor(inputData, [(inputData.length / inputsLength), inputsLength])
 
-    console.log(x)
-    console.log(y)
-    console.log(input)
-    // const inputsData = dataFile.flatMap((item, i) => {
-    //     console.log(item)
-    //     if (i < outputsLength) {
-    //         return item
-    //     }
-    // })
+    const model = tf.sequential()
+    const inputLayer = tf.layers.dense({ inputShape: [inputsLength], units: outputsLength })
+    model.add(inputLayer)
+    model.compile({ loss: 'meanSquaredError', optimizer: tf.train.sgd(0.05)})
 
-    // console.log(inputsData)
+    await model.fit(x, y, { epochs: 500})
+    const output = model.predict(input).dataSync()
+
+    const result = []
+
+    output.forEach(i => {
+        const n = parseInt(Math.ceil(i))
+        result.push(n)
+    });
+
+    console.log(result)
 
 }
 
@@ -79,7 +85,6 @@ const execute = async () => {
     // const x = tf.tensor2d([1, 2, 3, 4], [4, 1])
     // const y = tf.tensor2d([[11], [22], [33], [44]])
     // const input = tf.tensor2d([5, 6, 7], [3, 1])
-
     // await model.fit(x, y, { epochs: 550})
     // const output = model.predict(input).dataSync()
     // const result = []
