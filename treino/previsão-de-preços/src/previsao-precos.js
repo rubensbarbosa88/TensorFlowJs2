@@ -7,98 +7,72 @@ button.addEventListener('click', readInputFile)
 
 
 function readInputFile () {
-    const file = input.files[0]
+  const file = input.files[0]
 
-    const reader = new FileReader();      
-    reader.readAsText(file);
+  const reader = new FileReader();
+  reader.readAsText(file);
 
-    reader.onload = () => handleFile(reader.result.split('\r\n'))
+  reader.onload = () => handleFile(reader.result.split('\r\n'))
 }
 
 const showInputsData = (data) => {
-    const el = document.getElementById('csv-inputs')
-    el.innerHTML = data
+  const el = document.getElementById('csv-inputs')
+  el.innerHTML = data
 }
 
-const getDataTypes = (arr, inputsHeader) => {
-    return arr.reduce((prev, current) => {
-        const itemArr = current.split(';')
-        
-        itemArr.forEach((item, index) => {
-            if (item && (index < inputsHeader)) {
-                prev.inputs.push(Number(item))
-            } else {
-                prev.outputs.push(Number(item))
-            }            
-        });
-    
-        return prev
-    }, { inputs: [], outputs: []})
+const getDataTypes = (file, inputsHeader, outputsHeader) => {
+  return file.reduce((prev, current) => {
+    const itemArr = current.split(';').filter(i => !!i)
+
+    if ((inputsHeader + outputsHeader) == itemArr.length) {
+      itemArr.forEach((item, index) => {
+        if (index < inputsHeader) {
+          prev.x.push(Number(item))
+        } else {
+          prev.y.push(Number(item))
+        }
+      });
+    } else {
+      prev.input = prev.input.concat(itemArr).map(i => Number(i))
+    }
+
+    return prev
+  }, { x: [], y: [], input: []})
 }
 
+const handleDataTypes = (data, headerInput, headerOutput) => {
 
+}
 const handleFile = async (file) => {
-    const headers = file[0].split(';')
-    const inputsLength = headers.filter(i => i === 'input').length
-    const outputsLength = headers.filter(i => i === 'output').length
-    delete file.shift()
+  console.log('PROCESSANDO ...')
+  const headers = file[0].split(';')
+  const inputsLength = headers.filter(i => i === 'input').length
+  const outputsLength = headers.filter(i => i === 'output').length
+  delete file.shift()
 
-    const dataTypes = getDataTypes(file, inputsLength)
-    const diff = (dataTypes.inputs.length - dataTypes.outputs.length) + 1
-    
-    const xData = dataTypes.inputs.slice(0, diff)
-    const yData = dataTypes.outputs.filter(i => !!i)
-    const inputData = dataTypes.inputs.slice(diff, dataTypes.inputs.length)
+  const dataTypes = getDataTypes(file, inputsLength, outputsLength)
 
-    const x = tf.tensor(xData, [(xData.length / inputsLength), inputsLength])
-    const y = tf.tensor(yData, [(yData.length / outputsLength), outputsLength])
-    const input = tf.tensor(inputData, [(inputData.length / inputsLength), inputsLength])
+  const x = tf.tensor(dataTypes.x, [(dataTypes.x.length / inputsLength), inputsLength])
+  const y = tf.tensor(dataTypes.y, [(dataTypes.y.length / outputsLength), outputsLength])
+  const input = tf.tensor(dataTypes.input, [(dataTypes.input.length / inputsLength), inputsLength])
 
-    const model = tf.sequential()
-    const inputLayer = tf.layers.dense({ inputShape: [inputsLength], units: outputsLength })
-    model.add(inputLayer)
-    model.compile({ loss: 'meanSquaredError', optimizer: tf.train.sgd(0.05)})
+  const model = tf.sequential()
+  const inputLayer = tf.layers.dense({ inputShape: [inputsLength], units: outputsLength })
+  model.add(inputLayer)
+  model.compile({ loss: 'meanSquaredError', optimizer: tf.train.sgd(0.05)})
 
-    await model.fit(x, y, { epochs: 500})
-    const output = model.predict(input).dataSync()
+  await model.fit(x, y, { epochs: 500})
+  const output = model.predict(input).dataSync()
 
-    const result = []
+  const result = []
 
-    output.forEach(i => {
-        const n = parseInt(Math.ceil(i))
-        result.push(n)
-    });
+  output.forEach(i => {
+    const n = parseInt(Math.ceil(i))
+    result.push(n)
+  });
 
-    console.log(result)
-
+  console.clear()
+  console.log(result)
 }
-
-const execute = async () => {
-    console.log('OK!!')
-    // console.log('Preocessando ...')
-    // const model = tf.sequential()
-    // const inputLayer = tf.layers.dense({ inputShape: [1], units: 1 })
-
-    // model.add(inputLayer)
-    // model.compile({ loss: 'meanSquaredError', optimizer: 'sgd'})
-
-    // const x = tf.tensor2d([1, 2, 3, 4], [4, 1])
-    // const y = tf.tensor2d([[11], [22], [33], [44]])
-    // const input = tf.tensor2d([5, 6, 7], [3, 1])
-    // await model.fit(x, y, { epochs: 550})
-    // const output = model.predict(input).dataSync()
-    // const result = []
-
-    // output.forEach(i => {
-    //     result.push(Math.ceil(i))
-    // });
-
-    // console.clear()
-    // console.log(result)
-
-    // tf.dispose([model, x, y, input, output])
-}
-
-// execute()
 
 
