@@ -1,0 +1,21 @@
+{
+  "name": "linear-regression",
+  "version": "1.0.0",
+  "description": "",
+  "source": "src/previsao-precos-imoveis.html",
+  "scripts": {
+    "start": "parcel",
+    "build": "parcel build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tensorflow/tfjs": "^4.2.0",
+    "parcel": "^2.8.3"
+  },
+  "devDependencies": {
+    "buffer": "^5.7.1",
+    "process": "^0.11.10"
+  }
+}
