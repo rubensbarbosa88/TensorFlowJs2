@@ -58,7 +58,7 @@ async function submit () {
   const result = []
 
   output.forEach(i => {
-    const n = parseInt(Math.ceil(i))
+    const n = parseInt(Math.round(i / 10000) * 10000)
     result.push(n)
   });
 
